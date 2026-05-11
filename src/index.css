@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+  color: #F8FAFC;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg 
+           transition-all duration-200 hover:scale-105 active:scale-95 
+           shadow-lg hover:shadow-xl;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-surface hover:bg-background-light text-text font-bold rounded-lg 
+           transition-all duration-200 hover:scale-105 active:scale-95 
+           border border-primary/30 hover:border-primary;
+  }
+
+  .card {
+    @apply bg-background-light/50 backdrop-blur-sm rounded-xl p-6 
+           border border-surface/50 shadow-xl;
+  }
+
+  .health-bar {
+    @apply h-4 bg-surface rounded-full overflow-hidden;
+  }
+
+  .health-bar-fill {
+    @apply h-full transition-all duration-300 ease-out;
+  }
+
+  .pixel-border {
+    @apply border-4 border-surface rounded-lg;
+  }
+}
+
+.typing-char {
+  @apply inline-block transition-all duration-150;
+}
+
+.typing-char.correct {
+  @apply text-success;
+}
+
+.typing-char.incorrect {
+  @apply text-enemy animate-shake;
+}
+
+.typing-char.current {
+  @apply text-warning underline underline-offset-4;
+}
+
+.typing-char.pending {
+  @apply text-text-muted;
+}
+
+@keyframes idle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes sword-slash {
+  0% { 
+    transform: rotate(-45deg) scale(0);
+    opacity: 0;
+  }
+  50% { 
+    transform: rotate(0deg) scale(1.2);
+    opacity: 1;
+  }
+  100% { 
+    transform: rotate(45deg) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes magic-cast {
+  0% { 
+    transform: scale(0);
+    opacity: 0;
+  }
+  30% { 
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  100% { 
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes enemy-hurt {
+  0%, 100% { 
+    transform: translateX(0) scale(1);
+    filter: brightness(1);
+  }
+  10%, 30%, 50% { 
+    transform: translateX(-8px) scale(0.95);
+    filter: brightness(2) hue-rotate(-30deg);
+  }
+  20%, 40% { 
+    transform: translateX(8px) scale(0.95);
+    filter: brightness(1.5);
+  }
+}
+
+@keyframes player-defend {
+  0%, 100% { 
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: translateX(-20px);
+    filter: brightness(1.3) drop-shadow(0 0 10px #22C55E);
+  }
+}
+
+@keyframes shield-block {
+  0% { 
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% { 
+    transform: scale(1.2) rotate(0deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: scale(0) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-burst {
+  0% { 
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% { 
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes critical-hit {
+  0%, 100% { 
+    transform: scale(1);
+  }
+  25% { 
+    transform: scale(1.3) rotate(-5deg);
+  }
+  75% { 
+    transform: scale(1.3) rotate(5deg);
+  }
+}
+
+@keyframes float-effect {
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(-60px) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% { 
+    box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+@keyframes background-shift {
+  0%, 100% { 
+    background-position: 0% 50%;
+  }
+  50% { 
+    background-position: 100% 50%;
+  }
+}
+
+.character-idle {
+  animation: idle-bounce 2s ease-in-out infinite;
+}
+
+.attack-effect {
+  animation: sword-slash 0.4s ease-out forwards;
+}
+
+.magic-effect {
+  animation: magic-cast 0.6s ease-out forwards;
+}
+
+.enemy-hit {
+  animation: enemy-hurt 0.4s ease-out;
+}
+
+.player-defend {
+  animation: player-defend 0.5s ease-out;
+}
+
+.shield-effect {
+  animation: shield-block 0.5s ease-out forwards;
+}
+
+.particle {
+  animation: particle-burst 0.8s ease-out forwards;
+}
+
+.critical-text {
+  animation: critical-hit 0.3s ease-out;
+}
+
+.damage-float {
+  animation: float-effect 1s ease-out forwards;
+}
+
+.pulse-glow-effect {
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+.battle-background {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 25%, #0F172A 50%, #1E293B 75%, #0F172A 100%);
+  background-size: 400% 400%;
+  animation: background-shift 15s ease infinite;
+}
