@@ -30,8 +30,11 @@ export default function Battle() {
   const [isHurt, setIsHurt] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
+  const [attackEffects, setAttackEffects] = useState<{id: number, type: string}[]>([]);
+  const [particles, setParticles] = useState<{id: number, x: number, y: number}[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const damageIdRef = useRef(0);
+  const effectIdRef = useRef(0);
 
   const { battleState, startBattle, updateBattleState, player, loadData, completeLevel: markComplete, isLoading } = useGameStore();
   const { handleKeyPress, initializeWords, advanceToNextWord } = useTyping(mode!, parseInt(level || '1'));
@@ -49,6 +52,33 @@ export default function Battle() {
     setTimeout(() => {
       setFloatingDamages((prev) => prev.filter((d) => d.id !== id));
     }, 1000);
+  }, []);
+
+  const triggerAttackEffect = useCallback(() => {
+    const effectId = effectIdRef.current++;
+    const effectType = Math.random() > 0.7 ? 'magic' : 'sword';
+    
+    setAttackEffects((prev) => [...prev, { id: effectId, type: effectType }]);
+    
+    setTimeout(() => {
+      setAttackEffects((prev) => prev.filter((e) => e.id !== effectId));
+    }, 600);
+  }, []);
+
+  const spawnParticles = useCallback((count: number, isCritical: boolean) => {
+    const newParticles = [];
+    for (let i = 0; i < count; i++) {
+      const particleId = effectIdRef.current++;
+      const x = 60 + Math.random() * 20;
+      const y = 30 + Math.random() * 20;
+      newParticles.push({ id: particleId, x, y });
+    }
+    
+    setParticles((prev) => [...prev, ...newParticles]);
+    
+    setTimeout(() => {
+      setParticles((prev) => prev.filter((p) => !newParticles.find((np) => np.id === p.id)));
+    }, 800);
   }, []);
 
   const handleEnemyDefeated = useCallback(() => {
@@ -148,6 +178,8 @@ export default function Battle() {
 
     if (result.isCorrect && result.wordComplete) {
       setIsAttacking(true);
+      triggerAttackEffect();
+      spawnParticles(8, result.damage > 15);
       damageEnemy(result.damage);
       
       setTimeout(() => {
@@ -236,7 +268,7 @@ export default function Battle() {
     : 100;
 
   return (
-    <div className="min-h-screen flex flex-col" onClick={() => inputRef.current?.focus()}>
+    <div className="min-h-screen flex flex-col battle-background" onClick={() => inputRef.current?.focus()}>
       <div className="bg-background-light/50 backdrop-blur-sm p-4 border-b border-surface">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Button variant="secondary" size="sm" onClick={() => navigate(`/select/${mode}`)}>
@@ -263,8 +295,22 @@ export default function Battle() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="max-w-6xl w-full grid lg:grid-cols-2 gap-12 items-center">
           <div className="relative">
-            <div className={`card text-center transition-transform ${isAttacking ? 'animate-attack' : ''}`}>
-              <div className="text-8xl mb-4">⚔️</div>
+            <div className={`card text-center transition-transform ${isAttacking ? 'animate-attack' : 'character-idle'}`}>
+              <div className="text-8xl mb-4 drop-shadow-lg">
+                ⚔️
+              </div>
+              <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16">
+                {attackEffects.filter(e => e.type === 'magic').map((effect) => (
+                  <div key={effect.id} className="magic-effect absolute inset-0 flex items-center justify-center">
+                    <div className="text-4xl">✨</div>
+                  </div>
+                ))}
+                {attackEffects.filter(e => e.type === 'sword').map((effect) => (
+                  <div key={effect.id} className="attack-effect absolute inset-0 flex items-center justify-center">
+                    <div className="text-4xl">💥</div>
+                  </div>
+                ))}
+              </div>
               <h3 className="text-xl font-bold mb-2">勇敢的战士</h3>
               <div className="mb-2">
                 <ProgressBar value={battleState.playerHp} max={battleState.playerMaxHp} showLabel color="success" />
@@ -274,18 +320,27 @@ export default function Battle() {
                 <span>攻击 {player.attack}</span>
               </div>
             </div>
-            {floatingDamages.filter(d => !d.type || d.type === 'damage').length > 0 && (
-              <div className="absolute inset-0 pointer-events-none">
-                {floatingDamages.filter(d => !d.type).map((fd) => (
-                  <DamageNumber key={fd.id} damage={fd.damage} x={fd.x} y={fd.y} type={fd.type} />
-                ))}
-              </div>
-            )}
+            <div className="absolute inset-0 pointer-events-none">
+              {particles.map((particle) => (
+                <div
+                  key={particle.id}
+                  className="particle absolute w-2 h-2 bg-warning rounded-full"
+                  style={{
+                    left: `${particle.x}%`,
+                    top: `${particle.y}%`,
+                    '--tx': `${(Math.random() - 0.5) * 100}px`,
+                    '--ty': `${(Math.random() - 0.5) * 100}px`,
+                  } as React.CSSProperties}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="relative">
-            <div className={`card text-center transition-transform ${isHurt ? 'animate-hurt' : ''} ${battleState.enemyAttacking ? 'ring-4 ring-enemy animate-pulse' : ''}`}>
-              <div className="text-8xl mb-4">{enemy.emoji}</div>
+            <div className={`card text-center transition-transform ${isHurt ? 'enemy-hit' : 'character-idle'} ${battleState.enemyAttacking ? 'ring-4 ring-enemy pulse-glow-effect' : ''}`}>
+              <div className="text-8xl mb-4 drop-shadow-lg">
+                {enemy.emoji}
+              </div>
               <h3 className="text-xl font-bold mb-2">{enemy.name}</h3>
               <div className="mb-2">
                 <ProgressBar value={battleState.enemyHp} max={battleState.enemyMaxHp} showLabel color="enemy" />
@@ -294,9 +349,11 @@ export default function Battle() {
                 {battleState.wordsCompleted}/{battleState.totalWords} 词汇
               </div>
             </div>
-            {floatingDamages.filter(d => d.type === 'damage').map((fd) => (
-              <DamageNumber key={fd.id} damage={fd.damage} x={fd.x} y={fd.y} type={fd.type} />
-            ))}
+            <div className="absolute inset-0 pointer-events-none">
+              {floatingDamages.filter(d => d.type === 'damage').map((fd) => (
+                <DamageNumber key={fd.id} damage={fd.damage} x={fd.x} y={fd.y} type={fd.type} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
