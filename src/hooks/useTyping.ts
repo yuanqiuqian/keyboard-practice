@@ -15,7 +15,8 @@ export const useTyping = (mode: GameMode, level: number) => {
 
   const initializeWords = useCallback(() => {
     const words = getWordsByMode(mode, level);
-    const shuffled = [...words].sort(() => Math.random() - 0.5).slice(0, 10);
+    const wordsNeeded = Math.min(words.length, 25 + level * 5);
+    const shuffled = [...words].sort(() => Math.random() - 0.5).slice(0, wordsNeeded);
     const firstWord = shuffled[0] || '';
     
     updateBattleState({
@@ -47,8 +48,8 @@ export const useTyping = (mode: GameMode, level: number) => {
         comboBonus = combo + 1;
       }
 
-      const baseDamage = 15 + Math.floor(Math.random() * 15);
-      const damage = wordComplete ? Math.floor(baseDamage * (1 + comboBonus * 0.1)) : 0;
+      const baseDamage = 5 + Math.floor(Math.random() * 5);
+      const damage = wordComplete ? Math.floor(baseDamage * (1 + comboBonus * 0.05)) : 0;
 
       updateBattleState({
         typedText: newTypedText,
