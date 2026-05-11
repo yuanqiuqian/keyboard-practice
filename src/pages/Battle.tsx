@@ -112,13 +112,13 @@ export default function Battle() {
   }, [loadData]);
 
   useEffect(() => {
-    if (mode && level && !battleState && !isLoading) {
-      const words = getWordsByMode(mode, parseInt(level));
-      const shuffled = [...words].sort(() => Math.random() - 0.5).slice(0, 10);
-      setGameWords(shuffled);
+    if (mode && level && !isLoading) {
+      const wordsNeeded = Math.min(getWordsByMode(mode, parseInt(level)).length, 25 + parseInt(level) * 5);
+      const words = [...getWordsByMode(mode, parseInt(level))].sort(() => Math.random() - 0.5).slice(0, wordsNeeded);
+      setGameWords(words);
       startBattle(enemy.maxHp);
     }
-  }, [mode, level, enemy, battleState, isLoading, startBattle]);
+  }, [mode, level, enemy, isLoading, startBattle]);
 
   useEffect(() => {
     if (battleState && gameWords.length > 0 && !battleState.currentWord) {
