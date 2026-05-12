@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Clock, Zap, Target, Shield, Swords } from 'lucide-react';
+import { clsx } from 'clsx';
+import { ArrowLeft } from 'lucide-react';
 import { useGameStore } from '@/hooks/useGameStore';
 import { useTyping } from '@/hooks/useTyping';
 import { useBattle } from '@/hooks/useBattle';
@@ -16,9 +17,10 @@ import DamageNumber from '@/components/common/DamageNumber';
 interface FloatingDamage {
   id: number;
   damage: number;
-  x: number;
-  y: number;
+  x: number | string;
+  y: number | string;
   type: 'damage' | 'heal';
+  target: 'player' | 'enemy';
 }
 
 export default function Battle() {
@@ -27,11 +29,12 @@ export default function Battle() {
   const [gameWords, setGameWords] = useState<string[]>([]);
   const [floatingDamages, setFloatingDamages] = useState<FloatingDamage[]>([]);
   const [isAttacking, setIsAttacking] = useState(false);
-  const [isHurt, setIsHurt] = useState(false);
+  const [isPlayerHurt, setIsPlayerHurt] = useState(false);
+  const [isEnemyHurt, setIsEnemyHurt] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
-  const [attackEffects, setAttackEffects] = useState<{id: number, type: string}[]>([]);
-  const [particles, setParticles] = useState<{id: number, x: number, y: number}[]>([]);
+  const [attackEffects, setAttackEffects] = useState<{ id: number; type: 'magic' | 'slash' | 'impact'; source: 'player' | 'enemy' }[]>([]);
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: 'warning' | 'enemy' }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const damageIdRef = useRef(0);
   const effectIdRef = useRef(0);
@@ -42,36 +45,42 @@ export default function Battle() {
   const levelNum = parseInt(level || '1');
   const enemy = getEnemyByLevel(levelNum);
 
-  const addFloatingDamage = useCallback((damage: number, type: 'damage' | 'heal', isEnemy: boolean) => {
+  const addFloatingDamage = useCallback((damage: number, type: 'damage' | 'heal', target: 'player' | 'enemy') => {
     const id = damageIdRef.current++;
-    const x = isEnemy ? 70 + Math.random() * 20 : 20 + Math.random() * 20;
-    const y = 30 + Math.random() * 20;
+    const xBase = target === 'enemy' ? 68 : 22;
+    const x = `${xBase + Math.random() * 8}%`;
+    const y = `${40 + Math.random() * 10}%`;
     
-    setFloatingDamages((prev) => [...prev, { id, damage, x, y, type }]);
+    setFloatingDamages((prev) => [...prev, { id, damage, x, y, type, target }]);
     
     setTimeout(() => {
       setFloatingDamages((prev) => prev.filter((d) => d.id !== id));
     }, 1000);
   }, []);
 
-  const triggerAttackEffect = useCallback(() => {
+  const triggerAttackEffect = useCallback((source: 'player' | 'enemy', isCritical: boolean) => {
     const effectId = effectIdRef.current++;
-    const effectType = Math.random() > 0.7 ? 'magic' : 'sword';
+    const effectType: 'magic' | 'slash' | 'impact' = isCritical
+      ? 'impact'
+      : Math.random() > 0.7
+        ? 'magic'
+        : 'slash';
     
-    setAttackEffects((prev) => [...prev, { id: effectId, type: effectType }]);
+    setAttackEffects((prev) => [...prev, { id: effectId, type: effectType, source }]);
     
     setTimeout(() => {
       setAttackEffects((prev) => prev.filter((e) => e.id !== effectId));
-    }, 600);
+    }, 550);
   }, []);
 
-  const spawnParticles = useCallback((count: number, isCritical: boolean) => {
+  const spawnParticles = useCallback((count: number, target: 'player' | 'enemy', isCritical: boolean) => {
     const newParticles = [];
     for (let i = 0; i < count; i++) {
       const particleId = effectIdRef.current++;
-      const x = 60 + Math.random() * 20;
-      const y = 30 + Math.random() * 20;
-      newParticles.push({ id: particleId, x, y });
+      const xBase = target === 'enemy' ? 66 : 20;
+      const x = xBase + Math.random() * 12;
+      const y = 45 + Math.random() * 12;
+      newParticles.push({ id: particleId, x, y, color: isCritical ? 'warning' : 'enemy' });
     }
     
     setParticles((prev) => [...prev, ...newParticles]);
@@ -130,11 +139,23 @@ export default function Battle() {
     setShowResult(true);
   }, [battleState]);
 
-  const { damageEnemy, damagePlayer } = useBattle(levelNum, {
+  const { damageEnemy } = useBattle(levelNum, {
     onEnemyDefeated: handleEnemyDefeated,
     onPlayerDefeated: handlePlayerDefeated,
-    onDamageDealt: (damage) => addFloatingDamage(damage, 'damage', true),
-    onDamageReceived: (damage) => addFloatingDamage(damage, 'damage', false),
+    onDamageDealt: (damage) => {
+      addFloatingDamage(damage, 'damage', 'enemy');
+      setIsEnemyHurt(true);
+      triggerAttackEffect('player', damage > 15);
+      spawnParticles(damage > 15 ? 14 : 10, 'enemy', damage > 15);
+      setTimeout(() => setIsEnemyHurt(false), 250);
+    },
+    onDamageReceived: (damage) => {
+      addFloatingDamage(damage, 'damage', 'player');
+      setIsPlayerHurt(true);
+      triggerAttackEffect('enemy', false);
+      spawnParticles(10, 'player', false);
+      setTimeout(() => setIsPlayerHurt(false), 250);
+    },
   });
 
   useEffect(() => {
@@ -178,8 +199,6 @@ export default function Battle() {
 
     if (result.isCorrect && result.wordComplete) {
       setIsAttacking(true);
-      triggerAttackEffect();
-      spawnParticles(8, result.damage > 15);
       damageEnemy(result.damage);
       
       setTimeout(() => {
@@ -188,10 +207,7 @@ export default function Battle() {
         if (nextResult === 'battle_complete') {
           handleEnemyDefeated();
         }
-      }, 300);
-    } else if (!result.isCorrect) {
-      setIsHurt(true);
-      setTimeout(() => setIsHurt(false), 300);
+      }, 240);
     }
   }, [battleState, handleKeyPress, damageEnemy, advanceToNextWord, gameWords, showResult, handleEnemyDefeated]);
 
@@ -268,102 +284,108 @@ export default function Battle() {
     : 100;
 
   return (
-    <div className="min-h-screen flex flex-col battle-background" onClick={() => inputRef.current?.focus()}>
-      <div className="bg-background-light/50 backdrop-blur-sm p-4 border-b border-surface">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Button variant="secondary" size="sm" onClick={() => navigate(`/select/${mode}`)}>
-            <ArrowLeft className="w-4 h-4 mr-2 inline" />
-            退出
-          </Button>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-text-muted" />
-              <span className="font-mono">{timeElapsed}秒</span>
+    <div className="min-h-screen flex flex-col fight-shell" onClick={() => inputRef.current?.focus()}>
+      <div className={clsx('fight-stage', `stage-${levelNum}`)}>
+        <div className="fight-hud">
+          <div className="fight-hud-top">
+            <Button variant="secondary" size="sm" onClick={() => navigate(`/select/${mode}`)}>
+              <ArrowLeft className="w-4 h-4 mr-2 inline" />
+              退出
+            </Button>
+            <div className="fight-hud-center">
+              <div className="fight-hud-timer font-pixel">{timeElapsed}</div>
+              <div className="fight-hud-sub">
+                <span className="font-mono text-success">{accuracy}%</span>
+                <span className="font-mono text-warning">{battleState.combo}连击</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-success" />
-              <span className="font-mono">{accuracy}%</span>
+            <div className="fight-hud-right-spacer" />
+          </div>
+
+          <div className="fight-hud-bars">
+            <div className="fight-hud-bar fight-hud-bar-left">
+              <div className="fight-hud-name">
+                勇敢的战士 <span className="text-text-muted">Lv.{player.level}</span>
+              </div>
+              <ProgressBar value={battleState.playerHp} max={battleState.playerMaxHp} color="success" variant="fightHud" />
             </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-warning" />
-              <span className="font-mono">{battleState.combo}连击</span>
+            <div className="fight-hud-bar fight-hud-bar-right">
+              <div className="fight-hud-name text-right">{enemy.name}</div>
+              <ProgressBar value={battleState.enemyHp} max={battleState.enemyMaxHp} color="enemy" variant="fightHud" />
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="max-w-6xl w-full grid lg:grid-cols-2 gap-12 items-center">
-          <div className="relative">
-            <div className={`card text-center transition-transform ${isAttacking ? 'animate-attack' : 'character-idle'}`}>
-              <div className="text-8xl mb-4 drop-shadow-lg">
-                ⚔️
-              </div>
-              <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16">
-                {attackEffects.filter(e => e.type === 'magic').map((effect) => (
-                  <div key={effect.id} className="magic-effect absolute inset-0 flex items-center justify-center">
-                    <div className="text-4xl">✨</div>
-                  </div>
-                ))}
-                {attackEffects.filter(e => e.type === 'sword').map((effect) => (
-                  <div key={effect.id} className="attack-effect absolute inset-0 flex items-center justify-center">
-                    <div className="text-4xl">💥</div>
-                  </div>
-                ))}
-              </div>
-              <h3 className="text-xl font-bold mb-2">勇敢的战士</h3>
-              <div className="mb-2">
-                <ProgressBar value={battleState.playerHp} max={battleState.playerMaxHp} showLabel color="success" />
-              </div>
-              <div className="flex justify-center gap-4 text-sm text-text-muted">
-                <span>等级 {player.level}</span>
-                <span>攻击 {player.attack}</span>
-              </div>
-            </div>
-            <div className="absolute inset-0 pointer-events-none">
-              {particles.map((particle) => (
-                <div
-                  key={particle.id}
-                  className="particle absolute w-2 h-2 bg-warning rounded-full"
-                  style={{
-                    left: `${particle.x}%`,
-                    top: `${particle.y}%`,
-                    '--tx': `${(Math.random() - 0.5) * 100}px`,
-                    '--ty': `${(Math.random() - 0.5) * 100}px`,
-                  } as React.CSSProperties}
-                />
-              ))}
-            </div>
+        <div className="fight-arena">
+          <div
+            className={clsx(
+              'fighter fighter-player',
+              isAttacking ? 'fighter-player-attack' : 'fighter-idle',
+              isPlayerHurt ? 'fighter-hurt' : ''
+            )}
+          >
+            <div className="fighter-sprite drop-shadow-lg">⚔️</div>
+            <div className="fighter-shadow" />
           </div>
 
-          <div className="relative">
-            <div className={`card text-center transition-transform ${isHurt ? 'enemy-hit' : 'character-idle'} ${battleState.enemyAttacking ? 'ring-4 ring-enemy pulse-glow-effect' : ''}`}>
-              <div className="text-8xl mb-4 drop-shadow-lg">
-                {enemy.emoji}
-              </div>
-              <h3 className="text-xl font-bold mb-2">{enemy.name}</h3>
-              <div className="mb-2">
-                <ProgressBar value={battleState.enemyHp} max={battleState.enemyMaxHp} showLabel color="enemy" />
-              </div>
-              <div className="text-sm text-text-muted">
-                {battleState.wordsCompleted}/{battleState.totalWords} 词汇
-              </div>
-            </div>
-            <div className="absolute inset-0 pointer-events-none">
-              {floatingDamages.filter(d => d.type === 'damage').map((fd) => (
-                <DamageNumber key={fd.id} damage={fd.damage} x={fd.x} y={fd.y} type={fd.type} />
-              ))}
-            </div>
+          <div
+            className={clsx(
+              'fighter fighter-enemy',
+              battleState.enemyAttacking ? 'fighter-enemy-attack' : 'fighter-idle',
+              isEnemyHurt ? 'fighter-hurt' : ''
+            )}
+          >
+            <div className="fighter-sprite drop-shadow-lg">{enemy.emoji}</div>
+            <div className="fighter-shadow" />
           </div>
+
+          <div className="fight-overlay pointer-events-none">
+            {attackEffects.map((effect) => (
+              <div
+                key={effect.id}
+                className={clsx('fight-effect', `fight-effect-${effect.source}`, `fight-effect-${effect.type}`)}
+              >
+                <div className="fight-effect-emoji">
+                  {effect.type === 'magic' ? '✨' : effect.type === 'slash' ? '💥' : '⚡'}
+                </div>
+              </div>
+            ))}
+
+            {particles.map((particle) => (
+              <div
+                key={particle.id}
+                className={clsx(
+                  'particle absolute w-2 h-2 rounded-full',
+                  particle.color === 'warning' ? 'bg-warning' : 'bg-enemy'
+                )}
+                style={{
+                  left: `${particle.x}%`,
+                  top: `${particle.y}%`,
+                  '--tx': `${(Math.random() - 0.5) * 120}px`,
+                  '--ty': `${(Math.random() - 0.5) * 120}px`,
+                } as React.CSSProperties}
+              />
+            ))}
+
+            {floatingDamages.map((fd) => (
+              <DamageNumber key={fd.id} damage={fd.damage} x={fd.x} y={fd.y} type={fd.type} />
+            ))}
+          </div>
+        </div>
+
+        <div className="fight-progress">
+          <span className="font-mono text-text-muted">
+            {battleState.wordsCompleted}/{battleState.totalWords} 词汇
+          </span>
         </div>
       </div>
 
-      <div className="bg-background-light/80 backdrop-blur-sm p-6 border-t border-surface">
-        <div className="max-w-3xl mx-auto">
+      <div className="fight-input bg-background-light/80 backdrop-blur-sm border-t border-surface">
+        <div className="max-w-3xl mx-auto p-6">
           <div className="text-center mb-4">
             <span className="text-text-muted text-sm">输入下面的文字来攻击敌人</span>
           </div>
-          
+
           <div className="bg-surface/50 rounded-xl p-6 mb-4 min-h-[80px] flex items-center justify-center">
             {battleState.currentWord && (
               <div className="font-mono text-3xl tracking-wide">

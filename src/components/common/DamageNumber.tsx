@@ -3,8 +3,8 @@ import { clsx } from 'clsx';
 
 interface DamageNumberProps {
   damage: number;
-  x: number;
-  y: number;
+  x: number | string;
+  y: number | string;
   type: 'damage' | 'heal';
   onComplete?: () => void;
 }

@@ -41,7 +41,7 @@ export const useBattle = (level: number, callbacks: BattleCallbacks) => {
     enemyTimerRef.current = setInterval(() => {
       if (battleState && battleState.enemyHp > 0 && !battleState.enemyAttacking) {
         updateBattleState({ enemyAttacking: true });
-        setTimeout(enemyAttack, 500);
+        setTimeout(enemyAttack, 250);
       }
     }, enemy.attackInterval * 1000);
   }, [enemy.attackInterval, battleState, enemyAttack, updateBattleState]);

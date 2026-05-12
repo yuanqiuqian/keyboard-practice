@@ -6,6 +6,7 @@ interface ProgressBarProps {
   className?: string;
   showLabel?: boolean;
   color?: 'primary' | 'enemy' | 'success' | 'warning';
+  variant?: 'default' | 'fightHud';
 }
 
 export default function ProgressBar({
@@ -14,6 +15,7 @@ export default function ProgressBar({
   className,
   showLabel = false,
   color = 'primary',
+  variant = 'default',
 }: ProgressBarProps) {
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
@@ -32,10 +34,16 @@ export default function ProgressBar({
           <span className="text-text font-mono">{value} / {max}</span>
         </div>
       )}
-      <div className="h-4 bg-surface rounded-full overflow-hidden">
+      <div
+        className={clsx(
+          'overflow-hidden',
+          variant === 'fightHud' ? 'h-3 bg-black/40 rounded-sm border border-surface/70' : 'h-4 bg-surface rounded-full'
+        )}
+      >
         <div
           className={clsx(
-            'h-full transition-all duration-300 ease-out rounded-full',
+            'h-full transition-all duration-300 ease-out',
+            variant === 'fightHud' ? '' : 'rounded-full',
             colors[color]
           )}
           style={{ width: `${percentage}%` }}

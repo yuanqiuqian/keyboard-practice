@@ -1,14 +1,15 @@
 import { GameSaveData, Player, GameStats, GameMode } from '@/types/game';
+import { GAME_CONFIG_JSON } from '@/config/gameConfig';
 
 const STORAGE_KEY = 'keyboard-hero-save';
 
 const defaultPlayer: Player = {
   level: 1,
   exp: 0,
-  maxHp: 100,
-  currentHp: 100,
-  attack: 20,
-  defense: 0.2,
+  maxHp: GAME_CONFIG_JSON.player.base.maxHp,
+  currentHp: GAME_CONFIG_JSON.player.base.maxHp,
+  attack: GAME_CONFIG_JSON.player.base.attack,
+  defense: GAME_CONFIG_JSON.player.base.defense,
 };
 
 const defaultStats: GameStats = {
@@ -89,14 +90,14 @@ export const addExp = (exp: number): { leveledUp: boolean; newLevel: number } =>
   data.player.exp += exp;
   
   let leveledUp = false;
-  const expNeeded = 100 * data.player.level;
+  const expNeeded = GAME_CONFIG_JSON.progression.expBasePerLevel * data.player.level;
   
   while (data.player.exp >= expNeeded) {
     data.player.exp -= expNeeded;
     data.player.level += 1;
-    data.player.maxHp += 10;
+    data.player.maxHp += GAME_CONFIG_JSON.progression.hpPerLevel;
     data.player.currentHp = data.player.maxHp;
-    data.player.attack += 5;
+    data.player.attack += GAME_CONFIG_JSON.progression.attackPerLevel;
     leveledUp = true;
   }
   
