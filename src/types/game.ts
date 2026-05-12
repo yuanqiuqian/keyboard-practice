@@ -17,6 +17,7 @@ export interface Enemy {
   attackInterval: number;
   description: string;
   emoji: string;
+  spriteKey?: string;
 }
 
 export interface Level {
