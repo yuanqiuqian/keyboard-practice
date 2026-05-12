@@ -255,3 +255,228 @@ body {
   background-size: 400% 400%;
   animation: background-shift 15s ease infinite;
 }
+
+.fight-shell {
+  background: #0F172A;
+}
+
+.fight-stage {
+  position: relative;
+  flex: 1;
+  min-height: 420px;
+  overflow: hidden;
+}
+
+.fight-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(800px 300px at 20% 25%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
+    radial-gradient(900px 340px at 80% 30%, rgba(239, 68, 68, 0.18) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.0) 0%, rgba(0, 0, 0, 0.35) 100%);
+  pointer-events: none;
+}
+
+.fight-stage::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 36%;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.0) 0%, rgba(0, 0, 0, 0.65) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 2px, transparent 2px 18px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.stage-1 {
+  background: linear-gradient(180deg, #042F2E 0%, #0F172A 55%, #0B1020 100%);
+}
+
+.stage-2 {
+  background: linear-gradient(180deg, #0B1B33 0%, #0F172A 55%, #120A1A 100%);
+}
+
+.stage-3 {
+  background: linear-gradient(180deg, #3B2F13 0%, #0F172A 55%, #170C05 100%);
+}
+
+.stage-4 {
+  background: linear-gradient(180deg, #0B1020 0%, #0F172A 55%, #0B0D16 100%);
+}
+
+.stage-5 {
+  background: linear-gradient(180deg, #1F0A0A 0%, #0F172A 55%, #070A14 100%);
+}
+
+.fight-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 14px 16px 10px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.0) 100%);
+  backdrop-filter: blur(6px);
+}
+
+.fight-hud-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.fight-hud-center {
+  text-align: center;
+}
+
+.fight-hud-timer {
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.fight-hud-sub {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.fight-hud-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.fight-hud-name {
+  font-size: 12px;
+  margin-bottom: 6px;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.9);
+}
+
+.fight-arena {
+  position: relative;
+  height: 100%;
+  padding-top: 92px;
+}
+
+.fight-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.fighter {
+  position: absolute;
+  bottom: 10%;
+  width: min(40%, 360px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fighter-player {
+  left: 6%;
+}
+
+.fighter-enemy {
+  right: 6%;
+}
+
+.fighter-sprite {
+  font-size: clamp(72px, 12vw, 132px);
+  line-height: 1;
+}
+
+.fighter-enemy .fighter-sprite {
+  transform: scaleX(-1);
+}
+
+.fighter-shadow {
+  width: 70%;
+  height: 14px;
+  margin-top: 10px;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.55), transparent);
+  filter: blur(0.5px);
+}
+
+.fighter-idle {
+  animation: idle-bounce 2s ease-in-out infinite;
+}
+
+@keyframes fighter-lunge-player {
+  0% { transform: translateX(0) rotate(0deg); }
+  45% { transform: translateX(60px) rotate(6deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes fighter-lunge-enemy {
+  0% { transform: translateX(0) rotate(0deg); }
+  45% { transform: translateX(-60px) rotate(-6deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+.fighter-player-attack {
+  animation: fighter-lunge-player 0.26s ease-out;
+}
+
+.fighter-enemy-attack {
+  animation: fighter-lunge-enemy 0.26s ease-out;
+}
+
+.fighter-hurt {
+  animation: enemy-hurt 0.35s ease-out;
+}
+
+.fight-effect {
+  position: absolute;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  z-index: 25;
+}
+
+.fight-effect-player {
+  left: 62%;
+}
+
+.fight-effect-enemy {
+  left: 38%;
+}
+
+.fight-effect-emoji {
+  font-size: 52px;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.9);
+}
+
+.fight-effect-slash .fight-effect-emoji {
+  animation: sword-slash 0.35s ease-out forwards;
+}
+
+.fight-effect-magic .fight-effect-emoji {
+  animation: magic-cast 0.55s ease-out forwards;
+}
+
+.fight-effect-impact .fight-effect-emoji {
+  animation: critical-hit 0.3s ease-out;
+}
+
+.fight-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  text-align: center;
+  z-index: 25;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.9);
+}
+
+.fight-input {
+  z-index: 40;
+}
