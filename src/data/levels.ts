@@ -1,24 +1,16 @@
 import { Level, GameMode } from '@/types/game';
-import { getEnemyByLevel } from './enemies';
+import { getLevelConfig, getAllLevelIds } from '@/config/gameConfig';
 
 export const createLevelsForMode = (mode: GameMode): Level[] => {
-  const levelNames: Record<number, string> = {
-    1: '入门试炼',
-    2: '初露锋芒',
-    3: '渐入佳境',
-    4: '炉火纯青',
-    5: '王者之路',
-  };
-
-  return Array.from({ length: 5 }, (_, i) => {
-    const levelNum = i + 1;
-    const enemy = getEnemyByLevel(levelNum);
+  const levelIds = getAllLevelIds();
+  return levelIds.map((levelNum) => {
+    const cfg = getLevelConfig(levelNum);
     return {
       id: levelNum,
-      name: levelNames[levelNum],
-      enemyId: enemy.id,
+      name: cfg.name,
+      enemyId: cfg.enemy.id,
       words: [],
-      averageTime: 30 + levelNum * 15,
+      averageTime: cfg.averageTime,
       unlocked: levelNum === 1,
       completed: false,
     };
