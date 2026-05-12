@@ -330,7 +330,7 @@ export default function Battle() {
             )}
           >
             <div className="fighter-sprite drop-shadow-lg">
-              <FighterSprite frames={isAttacking ? playerSprite.attack : playerSprite.idle} fps={playerSprite.fps} />
+              <FighterSprite anim={isAttacking ? playerSprite.attack : playerSprite.idle} fps={playerSprite.fps} />
             </div>
             <div className="fighter-shadow" />
           </div>
@@ -344,7 +344,7 @@ export default function Battle() {
           >
             <div className="fighter-sprite drop-shadow-lg">
               <FighterSprite
-                frames={battleState.enemyAttacking ? enemySprite.attack : enemySprite.idle}
+                anim={battleState.enemyAttacking ? enemySprite.attack : enemySprite.idle}
                 fps={enemySprite.fps}
               />
             </div>
