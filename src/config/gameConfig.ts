@@ -11,6 +11,7 @@ export interface ConfigEnemy {
   attackInterval: number;
   description: string;
   emoji: string;
+  spriteKey?: string;
 }
 
 export interface ConfigLevel {
@@ -27,6 +28,7 @@ export interface GameConfigSchema {
       attack: number;
       defense: number;
     };
+    spriteKey?: string;
   };
   progression: {
     expBasePerLevel: number;
@@ -58,4 +60,3 @@ export const getWordsByModeFromConfig = (mode: GameMode, level: number): string[
   const cfg = getLevelConfig(level);
   return cfg.words?.[mode] || [];
 };
-

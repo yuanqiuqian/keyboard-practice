@@ -13,6 +13,9 @@ import { completeLevel, addExp, updateBestStats } from '@/utils/storage';
 import Button from '@/components/common/Button';
 import ProgressBar from '@/components/common/ProgressBar';
 import DamageNumber from '@/components/common/DamageNumber';
+import FighterSprite from '@/components/common/FighterSprite';
+import { GAME_CONFIG_JSON } from '@/config/gameConfig';
+import { getSpriteSet } from '@/config/sprites';
 
 interface FloatingDamage {
   id: number;
@@ -44,6 +47,8 @@ export default function Battle() {
 
   const levelNum = parseInt(level || '1');
   const enemy = getEnemyByLevel(levelNum);
+  const playerSprite = getSpriteSet(GAME_CONFIG_JSON.player.spriteKey);
+  const enemySprite = getSpriteSet((enemy as { spriteKey?: string }).spriteKey);
 
   const addFloatingDamage = useCallback((damage: number, type: 'damage' | 'heal', target: 'player' | 'enemy') => {
     const id = damageIdRef.current++;
@@ -324,7 +329,9 @@ export default function Battle() {
               isPlayerHurt ? 'fighter-hurt' : ''
             )}
           >
-            <div className="fighter-sprite drop-shadow-lg">⚔️</div>
+            <div className="fighter-sprite drop-shadow-lg">
+              <FighterSprite frames={isAttacking ? playerSprite.attack : playerSprite.idle} fps={playerSprite.fps} />
+            </div>
             <div className="fighter-shadow" />
           </div>
 
@@ -335,7 +342,12 @@ export default function Battle() {
               isEnemyHurt ? 'fighter-hurt' : ''
             )}
           >
-            <div className="fighter-sprite drop-shadow-lg">{enemy.emoji}</div>
+            <div className="fighter-sprite drop-shadow-lg">
+              <FighterSprite
+                frames={battleState.enemyAttacking ? enemySprite.attack : enemySprite.idle}
+                fps={enemySprite.fps}
+              />
+            </div>
             <div className="fighter-shadow" />
           </div>
 

@@ -4,7 +4,8 @@
       "maxHp": 100,
       "attack": 20,
       "defense": 0.2
-    }
+    },
+    "spriteKey": "maleAdventurer"
   },
   "progression": {
     "expBasePerLevel": 100,
@@ -22,7 +23,8 @@
         "damage": 6,
         "attackInterval": 3.5,
         "description": "栖息在森林深处的绿色凝胶生物，看似弱小实则狡猾",
-        "emoji": "🟢"
+        "emoji": "🟢",
+        "spriteKey": "zombie"
       },
       "words": {
         "english": [
@@ -150,7 +152,8 @@
         "damage": 8,
         "attackInterval": 3,
         "description": "黑暗洞穴中的群居生物，善于利用超声波定位猎物",
-        "emoji": "🦇"
+        "emoji": "🦇",
+        "spriteKey": "robot"
       },
       "words": {
         "english": [
@@ -268,7 +271,8 @@
         "damage": 10,
         "attackInterval": 2.6,
         "description": "炙热沙漠中的致命猎手，尾部的毒针能造成剧痛",
-        "emoji": "🦂"
+        "emoji": "🦂",
+        "spriteKey": "malePerson"
       },
       "words": {
         "english": [
@@ -363,7 +367,8 @@
         "damage": 12,
         "attackInterval": 2.2,
         "description": "被诅咒的战士，在月圆之夜会变成凶残的狼人",
-        "emoji": "🐺"
+        "emoji": "🐺",
+        "spriteKey": "femalePerson"
       },
       "words": {
         "english": [
@@ -449,7 +454,8 @@
         "damage": 15,
         "attackInterval": 1.9,
         "description": "守护公主的终极守护者，喷吐的火焰能焚烧一切",
-        "emoji": "🐉"
+        "emoji": "🐉",
+        "spriteKey": "femaleAdventurer"
       },
       "words": {
         "english": [
